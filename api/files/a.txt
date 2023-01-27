@@ -1,0 +1,84 @@
+//===========================================================
+// Lab 1 Hexadecimal Keyboard
+//==========================================================
+#include "inc/tm4c1294ncpdt.h"
+#include <stdio.h>
+#include <stdint.h>
+#define STEPS 500
+
+void wait()
+{
+    int j;
+    for (j = 0; j < STEPS; j++);
+}
+
+void main(void)
+{
+    int i, j;
+    unsigned char c;
+    SYSCTL_RCGCGPIO_R |= 0x0000800;  // Enable Control module port M
+    while ((SYSCTL_RCGCGPIO_R & 0x00000800) == 0); // busy until is ready
+
+    GPIO_PORTM_DEN_R = 0xFF; //enables 8 bits of M
+    GPIO_PORTM_DIR_R = 0x0F; //sets 4 bits of M as input and 4 a output 00001111
+
+    //Hexa-decimal pad values
+    char hex[4][4] = { { '1', '2', '3', 'F' },
+                       { '4', '5', '6', 'E' },
+                       { '7', '8', '9', 'D' },
+                       { 'A', '0', 'B', 'C' }, };
+
+    while (1)   //Loop to check which key is pushed
+    {
+        for (j = 0; j < 4; j++)
+        {
+
+            GPIO_PORTM_DATA_R = 0x0F^(1u<<j);
+
+            wait();
+            for (i = 4; i < 8; i++)
+            {
+                c = GPIO_PORTM_DATA_R;
+                if (!(c & (1u << i)))
+                {
+                    int m = (j - 3) * (-1);
+                    printf("%c\n", hex[i - 4][m]);
+                }
+                else{}
+            }
+        }
+
+    }
+}
+
+/*
+ //===========================================================
+ // Lab 1 Square signal
+ //==========================================================
+ #include "inc/tm4c1294ncpdt.h"
+ #include <stdio.h>
+ #define steps 1000
+
+ void wait (unsigned long steps){
+     unsigned long j;
+     for (j = 0; j < steps; j++);
+ }
+
+
+ int main()
+ {
+     SYSCTL_RCGCGPIO_R |= 0x00000008; // clock enable port D
+     while((SYSCTL_PRGPIO_R & 0x00000008) == 0); // check when port D available
+     GPIO_PORTD_AHB_DEN_R = 0x2F;
+     GPIO_PORTD_AHB_DIR_R = 0x0F;
+     while(1){
+         wait();
+         if (GPIO_PORTD_AHB_DATA_R == 0x01) // Mask with bitwise AND Bit0 and test it
+         GPIO_PORTD_AHB_DATA_R = 0x00; // output "1" at pin PD4
+         else
+         GPIO_PORTD_AHB_DATA_R = 0x01;
+     }
+
+ }
+ *
+ */
