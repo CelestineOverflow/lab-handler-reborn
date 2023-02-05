@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../../Labview/STRX/LabHandler/Weight_Sensor_ESP32"
+		},
+		{
+			"name": "pochita_board_v1",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
