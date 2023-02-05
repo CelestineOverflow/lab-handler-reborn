@@ -12,6 +12,7 @@ import sys
 import cv2 
 import io
 import lib.serial as serial
+import pupil_apriltags as apriltags
 
 app = FastAPI()
 origins = ['*']
@@ -118,4 +119,18 @@ async def image():
             return StreamingResponse(io.BytesIO(cv2.imencode('.jpg', frame)[1]), media_type="image/jpeg")
     except Exception as e:
         return {'error': str(e)}
-    
+
+#execute gcode macro
+
+@app.post("/macro")
+async def macro(macro: str):
+    try:
+        with open('config/config.cfg', 'r') as f:
+            config = configparser.ConfigParser()
+            config.read_file(f)
+            commands = config['macro'][macro]
+            for command in commands:
+                gcode(command)
+    except Exception as e:
+        return {'error': str(e)}
+    return {'success': True}
