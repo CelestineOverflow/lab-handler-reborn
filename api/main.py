@@ -81,7 +81,7 @@ async def connect_serial():
     global ser_cnc
     if ser_cnc is None:
         try:
-            with open('config/serial.cfg', 'r') as f:
+            with open('config/config.cfg', 'r') as f:
                 config = configparser.ConfigParser()
                 config.read_file(f)
                 port = config['serial']['port']
@@ -105,10 +105,10 @@ async def image():
     try:
         global cap
         if cap is None:
-            with open('config/camera.cfg', 'r') as f:
+            with open('config/config.cfg', 'r') as f:
                 config = configparser.ConfigParser()
                 config.read_file(f)
-                port = config['camera']['port']
+                port = config['camera:main']['index']
                 cap = cv2.VideoCapture(int(port))
         ret, frame = cap.read()
         if ret:
