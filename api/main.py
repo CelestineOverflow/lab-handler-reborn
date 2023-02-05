@@ -87,15 +87,17 @@ async def connect_serial():
                 config.read_file(f)
                 port = config['serial']['port']
                 baudrate = config['serial']['baudrate']
-                ser_cnc = serial.serial_worker(port, baudrate)
+                print(str(port), int(baudrate))
+                ser_cnc = serial.serial_worker(str(port), int(baudrate))
                 ser_cnc.start()
         except Exception as e:
             return {'error': str(e)}
-    
+    return {'success': True}
 @app.post("/gcode")
 async def gcode(gcode: str, wait: bool = False):
     global ser_cnc
     if ser_cnc is not None:
+        print("gcode: ", gcode)
         ser_cnc.send(gcode)
         if wait:
             ser_cnc.to_device.join()
@@ -122,15 +124,35 @@ async def image():
 
 #execute gcode macro
 
-@app.post("/macro")
-async def macro(macro: str):
+@app.post("/macros")
+async def macros(macro: str):
     try:
         with open('config/config.cfg', 'r') as f:
             config = configparser.ConfigParser()
             config.read_file(f)
-            commands = config['macro'][macro]
+            commands = config['macros'][macro].split(',')
+            print(commands)
             for command in commands:
-                gcode(command)
+                print("command: ", command)
+                await gcode(command, True)
     except Exception as e:
         return {'error': str(e)}
     return {'success': True}
+@app.post("/goto")
+async def goto(position: str):
+    try:
+        with open('config/config.cfg', 'r') as f:
+            config = configparser.ConfigParser()
+            config.read_file(f)
+            coordinates = config['mechanicalConstrains:Waypoints'][position].split(',')
+            travel_height = config['mechanicalConstrains']['z-travel-height']
+            print('destination: x {}, y {}, z {}'.format(coordinates[0], coordinates[1], coordinates[2]))
+            print('travel height: ', travel_height)
+            # await gcode('G90')#absolute coordinates
+            await gcode('G0 Z' + str(travel_height), True) #move to travel height
+            # await gcode('G0 X' + str(coordinates[0]) + ' Y' + str(coordinates[1]), True) #move to destination
+            # await gcode('G0 Z' + str(coordinates[2]), True) #move to destination
+    except Exception as e:
+        return {'error': str(e)}
+    return {'success': True}
+            
