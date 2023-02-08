@@ -146,12 +146,16 @@ async def goto(position: str):
             config.read_file(f)
             coordinates = config['mechanicalConstrains:Waypoints'][position].split(',')
             travel_height = config['mechanicalConstrains']['z-travel-height']
+            Zspeed = config['mechanicalConstrains']['z-rate']
+            XYspeed = config['mechanicalConstrains']['xy-rate']
+            print('Zspeed: ', Zspeed)
+            print('XYspeed: ', XYspeed)
             print('destination: x {}, y {}, z {}'.format(coordinates[0], coordinates[1], coordinates[2]))
             print('travel height: ', travel_height)
-            # await gcode('G90')#absolute coordinates
-            await gcode('G0 Z' + str(travel_height), True) #move to travel height
-            # await gcode('G0 X' + str(coordinates[0]) + ' Y' + str(coordinates[1]), True) #move to destination
-            # await gcode('G0 Z' + str(coordinates[2]), True) #move to destination
+            await gcode('G90', True)#absolute coordinates
+            await gcode('G0 Z' + str(travel_height) + ' F' + str(Zspeed), True) #move to travel height
+            await gcode('G0 X' + str(coordinates[0]) + ' Y' + str(coordinates[1]) + ' F' + str(XYspeed), True) #move to destination
+            await gcode('G0 Z' + str(coordinates[2]) + ' F' + str(Zspeed), True) #move to destination
     except Exception as e:
         return {'error': str(e)}
     return {'success': True}
